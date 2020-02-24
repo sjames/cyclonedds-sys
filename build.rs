@@ -43,7 +43,7 @@ mod build {
                 println!("LIB_DIR set but INCLUDE_DIR is unset");
                 None
             }
-        }
+        } 
         // now check if building using CMAKE. CycloneDDS has a cmake
         // build environment. When building within CMake, the cyclonedds need not
         // be "installed", so multiple include paths are required.
@@ -106,7 +106,19 @@ mod build {
             }
         } else {
             println!("No CMAKE environment or CYCLONEDDS_[LIB|INCLUDE]_DIR found");
-            None
+	    //try some defaults
+            println!("cargo:rustc-link-search=/usr/local/lib");
+
+            let path = format!("{}/dds/dds.h", "/usr/local/include");
+            let path = Path::new(&path);
+            if path.exists() {
+                println!("Found {}", &path.to_str().unwrap());
+                let paths = vec![String::from("/usr/local/include")];
+                Some(HeaderLocation::FromEnvironment(paths))
+            } else {
+                println!("Cannot find dds/dds.h");
+                None
+            }
         }
     }
 
@@ -223,7 +235,115 @@ mod build {
         .whitelist_function("dds_get_matched_subscription_data")
         .whitelist_function("dds_get_matched_publications")
         .whitelist_function("dds_get_matched_publication_data")
-        .whitelist_function("dds_assert_liveliness")
+        .whitelist_function("dds_assert_liveliness")   /* DDS Public Listener API Follows */
+        .whitelist_function("dds_create_listener")
+        .whitelist_function("dds_delete_listener")
+        .whitelist_function("dds_reset_listener")
+        .whitelist_function("dds_copy_listener")
+        .whitelist_function("dds_merge_listener")
+        .whitelist_function("dds_lset_inconsistent_topic")
+        .whitelist_function("dds_lset_liveliness_lost")
+        .whitelist_function("dds_lset_offered_deadline_missed")
+        .whitelist_function("dds_lset_offered_incompatible_qos")
+        .whitelist_function("dds_lset_data_on_readers")
+        .whitelist_function("dds_lset_sample_lost")
+        .whitelist_function("dds_lset_data_available")
+        .whitelist_function("dds_lset_sample_rejected")
+        .whitelist_function("dds_lset_liveliness_changed")
+        .whitelist_function("dds_lset_requested_deadline_missed")
+        .whitelist_function("dds_lset_requested_incompatible_qos")
+        .whitelist_function("dds_lset_offered_incompatible_qos")
+        .whitelist_function("dds_lset_publication_matched")
+        .whitelist_function("dds_lset_subscription_matched")
+        .whitelist_function("dds_lget_inconsistent_topic")
+        .whitelist_function("dds_lget_liveliness_lost")
+        .whitelist_function("dds_lget_offered_deadline_missed")
+        .whitelist_function("dds_lget_offered_incompatible_qos")
+        .whitelist_function("dds_lget_data_on_readers")
+        .whitelist_function("dds_lget_sample_lost")
+        .whitelist_function("dds_lget_data_available")
+        .whitelist_function("dds_lget_sample_rejected")
+        .whitelist_function("dds_lget_liveliness_changed")
+        .whitelist_function("dds_lget_requested_deadline_missed")
+        .whitelist_function("dds_lget_requested_incompatible_qos")
+        .whitelist_function("dds_lget_publication_matched")
+        .whitelist_function("dds_lget_subscription_matched")  /* DDS Public Alloc APIs follow */
+        .whitelist_function("dds_alloc")
+        .whitelist_function("dds_realloc")
+        .whitelist_function("dds_realloc_zero")
+        .whitelist_function("dds_free")
+        .whitelist_function("dds_string_alloc")
+        .whitelist_function("dds_string_dup")
+        .whitelist_function("dds_string_free")
+        .whitelist_function("dds_sample_free")   /* DDS Public Status APIs follow */
+        .whitelist_function("dds_get_inconsistent_topic_status")
+        .whitelist_function("dds_get_publication_matched_status")
+        .whitelist_function("dds_get_liveliness_lost_status")
+        .whitelist_function("dds_get_offered_deadline_missed_status")
+        .whitelist_function("dds_get_inconsistent_topic_status")
+        .whitelist_function("dds_get_offered_incompatible_qos_status")
+        .whitelist_function("dds_get_subscription_matched_status")
+        .whitelist_function("dds_get_liveliness_changed_status")
+        .whitelist_function("dds_get_sample_rejected_status")
+        .whitelist_function("dds_get_sample_lost_status")
+        .whitelist_function("dds_get_requested_deadline_missed_status")
+        .whitelist_function("dds_get_requested_incompatible_qos_status")
+        .whitelist_function("dds_get_inconsistent_topic_status")  /* DDS Public QOS APIs follow */
+        .whitelist_function("dds_create_qos")
+        .whitelist_function("dds_delete_qos")
+        .whitelist_function("dds_reset_qos")
+        .whitelist_function("dds_copy_qos")
+        .whitelist_function("dds_merge_qos")
+        .whitelist_function("dds_qos_equal")
+        .whitelist_function("dds_qset_userdata")
+        .whitelist_function("dds_qset_topicdata")
+        .whitelist_function("dds_qset_groupdata")
+        .whitelist_function("dds_qset_durability")
+        .whitelist_function("dds_qset_history")
+        .whitelist_function("dds_qset_resource_limits")
+        .whitelist_function("dds_qset_presentation")
+        .whitelist_function("dds_qset_lifespan")
+        .whitelist_function("dds_qset_deadline")
+        .whitelist_function("dds_qset_latency_budget")
+        .whitelist_function("dds_qset_ownership")
+        .whitelist_function("dds_qset_ownership_strength")
+        .whitelist_function("dds_qset_liveliness")
+        .whitelist_function("dds_qset_time_based_filter")
+        .whitelist_function("dds_qset_partition")
+        .whitelist_function("dds_qset_partition1")
+        .whitelist_function("dds_qset_reliability")
+        .whitelist_function("dds_qset_transport_priority")
+        .whitelist_function("dds_qset_destination_order")
+        .whitelist_function("dds_qset_writer_data_lifecycle")
+        .whitelist_function("dds_qset_reader_data_lifecycle")
+        .whitelist_function("dds_qset_durability_service")
+        .whitelist_function("dds_qset_ignorelocal")
+        .whitelist_function("dds_qget_userdata")
+        .whitelist_function("dds_qget_topicdata")
+        .whitelist_function("dds_qget_groupdata")
+        .whitelist_function("dds_qget_durability")
+        .whitelist_function("dds_qget_history")
+        .whitelist_function("dds_qget_resource_limits")
+        .whitelist_function("dds_qget_presentation")
+        .whitelist_function("dds_qget_lifespan")
+        .whitelist_function("dds_qget_deadline")
+        .whitelist_function("dds_qget_latency_budget")
+        .whitelist_function("dds_qget_ownership")
+        .whitelist_function("dds_qget_ownership_strength")
+        .whitelist_function("dds_qget_liveliness")
+        .whitelist_function("dds_qget_time_based_filter")
+        .whitelist_function("dds_qget_partition")
+        .whitelist_function("dds_qget_reliability")
+        .whitelist_function("dds_qget_transport_priority")
+        .whitelist_function("dds_qget_destination_order")
+        .whitelist_function("dds_qget_writer_data_lifecycle")
+        .whitelist_function("dds_qget_reader_data_lifecyele")
+        .whitelist_function("dds_qget_durability_service")
+        .whitelist_function("dds_qget_history")
+        .whitelist_function("dds_qget_ignorelocal")
+        .whitelist_function("dds_qget_history")
+        .whitelist_var("DDS_DOMAIN_DEFAULT")
+
 
     }
 
@@ -269,3 +389,4 @@ mod build {
     }
 
 }
+
