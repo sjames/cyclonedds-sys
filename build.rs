@@ -343,6 +343,15 @@ mod build {
         .whitelist_function("dds_qget_ignorelocal")
         .whitelist_function("dds_qget_history")
         .whitelist_var("DDS_DOMAIN_DEFAULT")
+        .rustified_enum("dds_durability_kind")
+        .rustified_enum("dds_history_kind")
+        .rustified_enum("dds_ownership_kind")
+        .rustified_enum("dds_liveliness_kind")
+        .rustified_enum("dds_reliability_kind")
+        .rustified_enum("dds_destination_order_kind")
+        .rustified_enum("dds_presentation_access_scope_kind")
+        .rustified_enum("dds_ignorelocal_kind")
+
 
 
     }
