@@ -130,7 +130,8 @@ mod build {
     }
 
     fn add_whitelist(builder : bindgen::Builder ) -> bindgen::Builder {
-      builder
+
+    builder
         .whitelist_function("dds_enable")
         .whitelist_function("dds_delete")
         .whitelist_function("dds_get_publisher")
@@ -342,6 +343,7 @@ mod build {
         .whitelist_function("dds_qget_history")
         .whitelist_function("dds_qget_ignorelocal")
         .whitelist_function("dds_qget_history")
+        .whitelist_function("_dummy")
         .whitelist_var("DDS_DOMAIN_DEFAULT")
         .rustified_enum("dds_durability_kind")
         .rustified_enum("dds_history_kind")
@@ -351,9 +353,7 @@ mod build {
         .rustified_enum("dds_destination_order_kind")
         .rustified_enum("dds_presentation_access_scope_kind")
         .rustified_enum("dds_ignorelocal_kind")
-
-
-
+        .constified_enum("dds_status_id")
     }
 
     pub fn generate(include_paths: std::vec::Vec<String>, maybe_sysroot: Option<String>) {
@@ -366,7 +366,6 @@ mod build {
         if let Some(sysroot) = maybe_sysroot {
             bindings = bindings.clang_arg(format!("--sysroot={}", sysroot));
         }
-
 
 
         let gen = add_whitelist(bindings).generate().expect("Unable to generate bindings");
