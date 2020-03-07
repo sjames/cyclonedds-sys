@@ -1,6 +1,30 @@
+use std::process::Command;
+
 fn main() {
     build::main();
 }
+
+macro_rules! ok(($expression:expr) => ($expression.unwrap()));
+macro_rules! log {
+    ($fmt:expr) => (println!(concat!("cyclonedds-sys/build.rs:{}: ", $fmt), line!()));
+    ($fmt:expr, $($arg:tt)*) => (println!(concat!("cyclonedds-sys/build.rs:{}: ", $fmt),
+    line!(), $($arg)*));
+}
+
+
+fn run<F>(name: &str, mut configure: F)
+where
+    F: FnMut(&mut Command) -> &mut Command,
+{
+    let mut command = Command::new(name);
+    let configured = configure(&mut command);
+    log!("Executing {:?}", configured);
+    if !ok!(configured.status()).success() {
+        panic!("failed to execute {:?}", configured);
+    }
+    log!("Command {:?} finished successfully", configured);
+}
+
 
 mod build {
 
@@ -10,6 +34,7 @@ mod build {
     use std::path::Path;
     use std::path::PathBuf;
     //use walkdir::{DirEntry, WalkDir};
+    use super::*;
     use glob::glob;
     
     static ENV_PREFIX: &str = "CYCLONEDDS";
@@ -18,13 +43,100 @@ mod build {
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
         FromEnvironment(std::vec::Vec<String>),
+        FromLocalBuild(std::vec::Vec<String>),
     }
+
+    /// download cyclone dds from github
+    fn download() {
+        
+        // get head of master for now. We can change to a specific version when 
+        // needed
+
+        let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
+        let srcpath = format!("{}/cyclonedds",&outdir);
+        let cyclonedds_src_path = Path::new(srcpath.as_str());
+
+        if !cyclonedds_src_path.exists() {
+            log!("Cloning cyclonedds from github");
+            run("git", |command| {
+                command
+                .arg("clone")
+                .arg("https://github.com/eclipse-cyclonedds/cyclonedds.git")
+                .current_dir(env::var("OUT_DIR").expect("OUT_DIR is not set").as_str())
+            });
+
+        } else {
+            log!("Already cloned cyclonedds - just running git checkout");
+            run("git", |command| {
+                command
+                .arg("checkout")
+                .current_dir(cyclonedds_src_path.to_str().unwrap())
+            });
+            
+        }
+        
+    }
+
+    fn configure_and_build() {
+        let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
+        let srcpath = format!("{}/cyclonedds",&outdir);
+        let cyclonedds_src_path = Path::new(srcpath.as_str());
+
+        run ("mkdir", |command| {
+            command
+            .arg("-p")
+            .arg("build")
+            .current_dir(cyclonedds_src_path.to_str().unwrap())
+        });
+
+        run ("cmake", |command| {
+            command
+            .arg("-DBUILD_IDLC=OFF")
+            .arg(format!("-DCMAKE_INSTALL_PREFIX={}/install",outdir))
+            .arg("..")
+            .current_dir(format!("{}/build",cyclonedds_src_path.to_str().unwrap()))
+        });
+
+        run ("make", |command| {
+            command
+            .current_dir(format!("{}/build",cyclonedds_src_path.to_str().unwrap()))
+        });
+
+        run ("make", |command| {
+            command
+            .arg("install")
+            .current_dir(format!("{}/build",cyclonedds_src_path.to_str().unwrap()))
+        });
+
+    }
+
 
     fn find_cyclonedds() -> Option<HeaderLocation> {
         // The library name does not change. Print that out right away
         println!("cargo:rustc-link-lib={}", LINKLIB);
         //first priority is environment variable.
-        if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
+
+        let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
+//        let install_path = format!("{}/install",&outdir);
+        let local_build_libpath = format!("{}/install/lib/libddsc.so",&outdir);
+        let local_build_so = Path::new(local_build_libpath.as_str());
+
+        if local_build_so.exists() {
+            println!("cargo:rustc-link-search={}/install/lib", &outdir);
+            let include_dir = String::from(format!("{}/install/include", &outdir));
+            let path = format!("{}/dds/dds.h",&include_dir);
+            let path = Path::new(&path);
+
+            if path.exists() {
+                    println!("Found {}", &path.to_str().unwrap());
+                    let paths = vec![include_dir];
+                    Some(HeaderLocation::FromLocalBuild(paths))
+                } else {
+                    println!("Cannot find dds/dds.h");
+                    None
+                }
+
+        } else if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
             println!("cargo:rustc-link-search={}", dir);
 
             // Now find the include path
@@ -353,6 +465,7 @@ mod build {
         .rustified_enum("dds_destination_order_kind")
         .rustified_enum("dds_presentation_access_scope_kind")
         .rustified_enum("dds_ignorelocal_kind")
+ 	.derive_default(true)
         .constified_enum("dds_status_id")
     }
 
@@ -385,12 +498,14 @@ mod build {
         for (key, value) in env::vars() {
             println!("{}: {}", key, value);
         }
-
+        download();
+        configure_and_build();
         let headerloc = find_cyclonedds().unwrap();
 
         match headerloc {
             HeaderLocation::FromCMakeEnvironment(paths, sysroot) => generate(paths, Some(sysroot)),
             HeaderLocation::FromEnvironment(paths) => generate(paths, None),
+            HeaderLocation::FromLocalBuild(paths)   => generate(paths,None),
         }
 
 

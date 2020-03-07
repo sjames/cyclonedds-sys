@@ -12,3 +12,4 @@ bindgen = "0.51.0"
 glob = "0.3"
 
 [dependencies]
+paste = "0.1"
