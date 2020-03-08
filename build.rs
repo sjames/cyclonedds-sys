@@ -11,7 +11,6 @@ macro_rules! log {
     line!(), $($arg)*));
 }
 
-
 fn run<F>(name: &str, mut configure: F)
 where
     F: FnMut(&mut Command) -> &mut Command,
@@ -25,7 +24,6 @@ where
     log!("Command {:?} finished successfully", configured);
 }
 
-
 mod build {
 
     extern crate bindgen;
@@ -36,7 +34,7 @@ mod build {
     //use walkdir::{DirEntry, WalkDir};
     use super::*;
     use glob::glob;
-    
+
     static ENV_PREFIX: &str = "CYCLONEDDS";
     static LINKLIB: &str = "ddsc";
 
@@ -48,68 +46,61 @@ mod build {
 
     /// download cyclone dds from github
     fn download() {
-        
-        // get head of master for now. We can change to a specific version when 
+        // get head of master for now. We can change to a specific version when
         // needed
 
         let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
-        let srcpath = format!("{}/cyclonedds",&outdir);
+        let srcpath = format!("{}/cyclonedds", &outdir);
         let cyclonedds_src_path = Path::new(srcpath.as_str());
 
         if !cyclonedds_src_path.exists() {
             log!("Cloning cyclonedds from github");
             run("git", |command| {
                 command
-                .arg("clone")
-                .arg("https://github.com/eclipse-cyclonedds/cyclonedds.git")
-                .current_dir(env::var("OUT_DIR").expect("OUT_DIR is not set").as_str())
+                    .arg("clone")
+                    .arg("https://github.com/eclipse-cyclonedds/cyclonedds.git")
+                    .current_dir(env::var("OUT_DIR").expect("OUT_DIR is not set").as_str())
             });
-
         } else {
             log!("Already cloned cyclonedds - just running git checkout");
             run("git", |command| {
                 command
-                .arg("checkout")
-                .current_dir(cyclonedds_src_path.to_str().unwrap())
+                    .arg("checkout")
+                    .current_dir(cyclonedds_src_path.to_str().unwrap())
             });
-            
         }
-        
     }
 
     fn configure_and_build() {
         let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
-        let srcpath = format!("{}/cyclonedds",&outdir);
+        let srcpath = format!("{}/cyclonedds", &outdir);
         let cyclonedds_src_path = Path::new(srcpath.as_str());
 
-        run ("mkdir", |command| {
+        run("mkdir", |command| {
             command
-            .arg("-p")
-            .arg("build")
-            .current_dir(cyclonedds_src_path.to_str().unwrap())
+                .arg("-p")
+                .arg("build")
+                .current_dir(cyclonedds_src_path.to_str().unwrap())
         });
 
-        run ("cmake", |command| {
+        run("cmake", |command| {
             command
-            .arg("-DBUILD_IDLC=OFF")
-            .arg(format!("-DCMAKE_INSTALL_PREFIX={}/install",outdir))
-            .arg("..")
-            .current_dir(format!("{}/build",cyclonedds_src_path.to_str().unwrap()))
+                .arg("-DBUILD_IDLC=OFF")
+                .arg(format!("-DCMAKE_INSTALL_PREFIX={}/install", outdir))
+                .arg("..")
+                .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
         });
 
-        run ("make", |command| {
-            command
-            .current_dir(format!("{}/build",cyclonedds_src_path.to_str().unwrap()))
+        run("make", |command| {
+            command.current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
         });
 
-        run ("make", |command| {
+        run("make", |command| {
             command
-            .arg("install")
-            .current_dir(format!("{}/build",cyclonedds_src_path.to_str().unwrap()))
+                .arg("install")
+                .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
         });
-
     }
-
 
     fn find_cyclonedds() -> Option<HeaderLocation> {
         // The library name does not change. Print that out right away
@@ -117,25 +108,24 @@ mod build {
         //first priority is environment variable.
 
         let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
-//        let install_path = format!("{}/install",&outdir);
-        let local_build_libpath = format!("{}/install/lib/libddsc.so",&outdir);
+        //        let install_path = format!("{}/install",&outdir);
+        let local_build_libpath = format!("{}/install/lib/libddsc.so", &outdir);
         let local_build_so = Path::new(local_build_libpath.as_str());
 
         if local_build_so.exists() {
             println!("cargo:rustc-link-search={}/install/lib", &outdir);
             let include_dir = String::from(format!("{}/install/include", &outdir));
-            let path = format!("{}/dds/dds.h",&include_dir);
+            let path = format!("{}/dds/dds.h", &include_dir);
             let path = Path::new(&path);
 
             if path.exists() {
-                    println!("Found {}", &path.to_str().unwrap());
-                    let paths = vec![include_dir];
-                    Some(HeaderLocation::FromLocalBuild(paths))
-                } else {
-                    println!("Cannot find dds/dds.h");
-                    None
-                }
-
+                println!("Found {}", &path.to_str().unwrap());
+                let paths = vec![include_dir];
+                Some(HeaderLocation::FromLocalBuild(paths))
+            } else {
+                println!("Cannot find dds/dds.h");
+                None
+            }
         } else if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
             println!("cargo:rustc-link-search={}", dir);
 
@@ -155,7 +145,7 @@ mod build {
                 println!("LIB_DIR set but INCLUDE_DIR is unset");
                 None
             }
-        } 
+        }
         // now check if building using CMAKE. CycloneDDS has a cmake
         // build environment. When building within CMake, the cyclonedds need not
         // be "installed", so multiple include paths are required.
@@ -208,17 +198,14 @@ mod build {
                     ))
                 } else {
                     println!("Unable to get TOOLCHAIN_SYSROOT");
-                    Some(HeaderLocation::FromCMakeEnvironment(
-                        paths,
-                        "/".to_string(),
-                    ))
+                    Some(HeaderLocation::FromCMakeEnvironment(paths, "/".to_string()))
                 }
             } else {
                 None
             }
         } else {
             println!("No CMAKE environment or CYCLONEDDS_[LIB|INCLUDE]_DIR found");
-	    //try some defaults
+            //try some defaults
             println!("cargo:rustc-link-search=/usr/local/lib");
 
             let path = format!("{}/dds/dds.h", "/usr/local/include");
@@ -241,9 +228,8 @@ mod build {
         ))
     }
 
-    fn add_whitelist(builder : bindgen::Builder ) -> bindgen::Builder {
-
-    builder
+    fn add_whitelist(builder: bindgen::Builder) -> bindgen::Builder {
+        builder
         .whitelist_function("dds_enable")
         .whitelist_function("dds_delete")
         .whitelist_function("dds_get_publisher")
@@ -480,18 +466,17 @@ mod build {
             bindings = bindings.clang_arg(format!("--sysroot={}", sysroot));
         }
 
-
-        let gen = add_whitelist(bindings).generate().expect("Unable to generate bindings");
+        let gen = add_whitelist(bindings)
+            .generate()
+            .expect("Unable to generate bindings");
 
         if let Ok(path) = env::var("OUT_DIR") {
-          let out_path = PathBuf::from(path);
-                  gen
-            .write_to_file(out_path.join("bindings.rs"))
-            .expect("Couldn't write bindings");
+            let out_path = PathBuf::from(path);
+            gen.write_to_file(out_path.join("bindings.rs"))
+                .expect("Couldn't write bindings");
         } else {
-          println!("OUT_DIR not set, not generating bindings");
+            println!("OUT_DIR not set, not generating bindings");
         }
-
     }
 
     pub fn main() {
@@ -505,11 +490,8 @@ mod build {
         match headerloc {
             HeaderLocation::FromCMakeEnvironment(paths, sysroot) => generate(paths, Some(sysroot)),
             HeaderLocation::FromEnvironment(paths) => generate(paths, None),
-            HeaderLocation::FromLocalBuild(paths)   => generate(paths,None),
+            HeaderLocation::FromLocalBuild(paths) => generate(paths, None),
         }
-
-
     }
 
 }
-
