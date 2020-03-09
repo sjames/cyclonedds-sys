@@ -13,7 +13,7 @@ pub trait DDSGenType {
     //unsafe fn get_raw_ptr(&self) -> *mut std::ffi::c_void;
 }
 
-enum DDSAllocatedData<T: Sized> {
+enum DDSAllocatedData<T: Sized + DDSGenType> {
     /// The type is allocated by Rust. This is used for sending data
     RustAllocated(*mut T),
     /// The type is allocated by Cyclone DDS.  This is used for received data. Cyclone DDS uses its own
@@ -47,9 +47,6 @@ where
     }
 
     pub unsafe fn get_raw_mut_ptr(&self) -> *mut std::ffi::c_void {
-        //-> *mut std::ffi::c_void {
-        //println!("raw_ptr:{:?}",self.0 as *mut std::ffi::c_void);
-        //println!("userID:{:?}",(*self.0).userID);
         match self.0 {
             DDSAllocatedData::CycloneDDSAllocated(p) => p as *mut std::ffi::c_void,
             DDSAllocatedData::RustAllocated(p) => p as *mut std::ffi::c_void,
@@ -102,59 +99,5 @@ where
             DDSAllocatedData::CycloneDDSAllocated(p) => unsafe { &mut *p },
             DDSAllocatedData::RustAllocated(p) => unsafe { &mut *p },
         }
-    }
-}
-
-/// Allocators for simple types
-extern crate libc;
-use std::ffi::CStr;
-use std::slice;
-
-pub struct DDSString(*mut libc::c_char);
-
-impl DDSString {
-    /// Allocate a new string using the dds allocator.
-    /// If contents are specified, this is copied into
-    /// the newly allocated string.  The copy is needed
-    /// as the string is most likely allocated by the
-    /// rust memory allocator
-    pub fn new(contents: &str) -> Result<Self, ()> {
-        unsafe {
-            let len = contents.len();
-            let p: *mut libc::c_char = dds_string_alloc(len+1 as usize)  // +1 for the null terminator.
-                    as *mut libc::c_char;
-            if !p.is_null() {
-                libc::memcpy(
-                    p as *mut libc::c_void,
-                    contents.as_ptr() as *mut libc::c_void,
-                    len,
-                );
-                let s = slice::from_raw_parts_mut(p, len + 1);
-                s[len] = 0;
-                Ok(DDSString(p))
-            } else {
-                Err(())
-            }
-        }
-    }
-
-    pub fn get_raw_ptr(&self) -> *mut libc::c_char {
-        self.0 as *mut libc::c_char
-    }
-}
-
-impl Drop for DDSString {
-    fn drop(&mut self) {
-        unsafe {
-            dds_string_free(self.0);
-        }
-    }
-}
-
-impl Deref for DDSString {
-    type Target = CStr;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { CStr::from_ptr(self.0) }
     }
 }
