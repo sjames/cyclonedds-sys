@@ -1,4 +1,7 @@
+// Sojan James
+// build.rs for cyclonedds-sys
 use std::process::Command;
+
 
 fn main() {
     build::main();
@@ -110,23 +113,8 @@ mod build {
         let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
         //        let install_path = format!("{}/install",&outdir);
         let local_build_libpath = format!("{}/install/lib/libddsc.so", &outdir);
-        let local_build_so = Path::new(local_build_libpath.as_str());
-
-        if local_build_so.exists() {
-            println!("cargo:rustc-link-search={}/install/lib", &outdir);
-            let include_dir = String::from(format!("{}/install/include", &outdir));
-            let path = format!("{}/dds/dds.h", &include_dir);
-            let path = Path::new(&path);
-
-            if path.exists() {
-                println!("Found {}", &path.to_str().unwrap());
-                let paths = vec![include_dir];
-                Some(HeaderLocation::FromLocalBuild(paths))
-            } else {
-                println!("Cannot find dds/dds.h");
-                None
-            }
-        } else if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
+        
+        if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
             println!("cargo:rustc-link-search={}", dir);
 
             // Now find the include path
@@ -215,8 +203,29 @@ mod build {
                 let paths = vec![String::from("/usr/local/include")];
                 Some(HeaderLocation::FromEnvironment(paths))
             } else {
-                println!("Cannot find dds/dds.h");
-                None
+                println!("Cannot find dds/dds.h attempting to build");
+                download();
+                configure_and_build();
+                 let local_build_libpath = format!("{}/install/lib/libddsc.so", &outdir);
+                 let local_build_so = Path::new(local_build_libpath.as_str());
+
+                if local_build_so.exists() {
+                    println!("cargo:rustc-link-search={}/install/lib", &outdir);
+                    let include_dir = String::from(format!("{}/install/include", &outdir));
+                    let path = format!("{}/dds/dds.h", &include_dir);
+                    let path = Path::new(&path);
+
+                    if path.exists() {
+                        println!("Found {}", &path.to_str().unwrap());
+                        let paths = vec![include_dir];
+                        Some(HeaderLocation::FromLocalBuild(paths))
+                    } else {
+                        println!("Cannot find dds/dds.h");
+                        None
+                    }
+                } else {
+                    None
+                }
             }
         }
     }
@@ -483,8 +492,8 @@ mod build {
         for (key, value) in env::vars() {
             println!("{}: {}", key, value);
         }
-        download();
-        configure_and_build();
+        //download();
+        //configure_and_build();
         let headerloc = find_cyclonedds().unwrap();
 
         match headerloc {
