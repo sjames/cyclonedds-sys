@@ -2,7 +2,6 @@
 // build.rs for cyclonedds-sys
 use std::process::Command;
 
-
 fn main() {
     build::main();
 }
@@ -112,8 +111,7 @@ mod build {
 
         let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
         //        let install_path = format!("{}/install",&outdir);
-        let local_build_libpath = format!("{}/install/lib/libddsc.so", &outdir);
-        
+
         if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
             println!("cargo:rustc-link-search={}", dir);
 
@@ -206,8 +204,8 @@ mod build {
                 println!("Cannot find dds/dds.h attempting to build");
                 download();
                 configure_and_build();
-                 let local_build_libpath = format!("{}/install/lib/libddsc.so", &outdir);
-                 let local_build_so = Path::new(local_build_libpath.as_str());
+                let local_build_libpath = format!("{}/install/lib/libddsc.so", &outdir);
+                let local_build_so = Path::new(local_build_libpath.as_str());
 
                 if local_build_so.exists() {
                     println!("cargo:rustc-link-search={}/install/lib", &outdir);
@@ -502,5 +500,4 @@ mod build {
             HeaderLocation::FromLocalBuild(paths) => generate(paths, None),
         }
     }
-
 }

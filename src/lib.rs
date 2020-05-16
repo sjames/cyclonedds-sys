@@ -3,8 +3,12 @@
 #![allow(non_snake_case)]
 
 use core::ops::{Deref, DerefMut};
+use std::os::raw::c_void;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+
+pub mod dds_error;
+pub use dds_error::DDSError;
 
 pub trait DDSGenType {
     /// Get the address of the static descriptor created by the generated code
@@ -14,7 +18,7 @@ pub trait DDSGenType {
 }
 
 enum DDSAllocatedData<T: Sized + DDSGenType> {
-    /// The type is allocated by Rust. This is used for sending data
+    /// The type is allocated by Rust.
     RustAllocated(*mut T),
     /// The type is allocated by Cyclone DDS.  This is used for received data. Cyclone DDS uses its own
     /// allocator and does not allow us to provide our own.
@@ -98,6 +102,44 @@ where
         match self.0 {
             DDSAllocatedData::CycloneDDSAllocated(p) => unsafe { &mut *p },
             DDSAllocatedData::RustAllocated(p) => unsafe { &mut *p },
+        }
+    }
+}
+
+pub fn write<T>(entity: dds_entity_t, msg: &T) -> Result<(), DDSError>
+where
+    T: Sized + DDSGenType,
+{
+    unsafe {
+        let ret = dds_write(entity, msg as *const T as *const std::ffi::c_void);
+        if ret >= 0 {
+            Ok(())
+        } else {
+            Err(DDSError::from(ret))
+        }
+    }
+}
+
+pub fn read<T>(entity: dds_entity_t) -> Result<DDSBox<T>, DDSError>
+where
+    T: Sized + DDSGenType,
+{
+    unsafe {
+        let mut info: dds_sample_info = dds_sample_info::default();
+        let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
+        let voidpp: *mut *mut c_void = &mut voidp;
+
+        let ret = dds_read(entity, voidpp, &mut info as *mut _, 1, 1);
+
+        if ret >= 0 {
+            if !voidp.is_null() && info.valid_data {
+                let buf = DDSBox::<T>::new_from_cyclone_allocated_struct(voidp as *mut T);
+                Ok(buf)
+            } else {
+                Err(DDSError::OutOfResources)
+            }
+        } else {
+            Err(DDSError::from(ret))
         }
     }
 }
