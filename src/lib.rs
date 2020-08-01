@@ -11,6 +11,7 @@ pub mod dds_error;
 pub use dds_error::DDSError;
 
 pub type DdsEntity = dds_entity_t;
+pub type DdsDomainId = dds_domainid_t;
 
 pub trait DDSGenType {
     /// Get the address of the static descriptor created by the generated code
