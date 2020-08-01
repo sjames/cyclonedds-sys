@@ -1,6 +1,6 @@
 use std::{error::Error, fmt};
 
-use crate::dds_entity_t;
+use crate::dds_return_t;
 
 #[derive(Debug, PartialEq)]
 pub enum DDSError {
@@ -46,8 +46,8 @@ impl fmt::Display for DDSError {
 /// These constants are defined in ddsrt/retcode.h. bindgen doesn't see these macros
 /// and hence they are redefined here.DDSError
 /// Bad things will happen if these go out of sync
-impl From<dds_entity_t> for DDSError {
-    fn from(entity: dds_entity_t) -> Self {
+impl From<dds_return_t> for DDSError {
+    fn from(entity: dds_return_t) -> Self {
         match Some(entity) {
             Some(0) => DDSError::DdsOk,
             Some(-1) => DDSError::DdsError,
