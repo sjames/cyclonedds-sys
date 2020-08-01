@@ -39,6 +39,7 @@ mod build {
 
     static ENV_PREFIX: &str = "CYCLONEDDS";
     static LINKLIB: &str = "ddsc";
+    static GIT_COMMIT : &str = "761ffa6db2ee1e4c6d22e495e609179a5ec5b22f";
 
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
@@ -68,6 +69,7 @@ mod build {
             run("git", |command| {
                 command
                     .arg("checkout")
+                    .arg(GIT_COMMIT) // release 0.6.0
                     .current_dir(cyclonedds_src_path.to_str().unwrap())
             });
         }
@@ -107,11 +109,11 @@ mod build {
     fn find_cyclonedds() -> Option<HeaderLocation> {
         // The library name does not change. Print that out right away
         println!("cargo:rustc-link-lib={}", LINKLIB);
-        //first priority is environment variable.
+        
 
         let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
-        //        let install_path = format!("{}/install",&outdir);
-
+        
+        //first priority is environment variable.
         if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
             println!("cargo:rustc-link-search={}", dir);
 
@@ -449,6 +451,10 @@ mod build {
         .whitelist_function("dds_qget_ignorelocal")
         .whitelist_function("dds_qget_history")
         .whitelist_function("_dummy")
+        .whitelist_type("dds_stream_opcode")
+        .whitelist_type("dds_stream_typecode")
+        .whitelist_type("dds_stream_typecode_primary")
+        .whitelist_type("dds_stream_typecode_subtype")
         .whitelist_var("DDS_DOMAIN_DEFAULT")
         .rustified_enum("dds_durability_kind")
         .rustified_enum("dds_history_kind")
@@ -490,8 +496,6 @@ mod build {
         for (key, value) in env::vars() {
             println!("{}: {}", key, value);
         }
-        //download();
-        //configure_and_build();
         let headerloc = find_cyclonedds().unwrap();
 
         match headerloc {

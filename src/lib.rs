@@ -13,8 +13,7 @@ pub use dds_error::DDSError;
 pub trait DDSGenType {
     /// Get the address of the static descriptor created by the generated code
     unsafe fn get_descriptor() -> &'static dds_topic_descriptor_t;
-    // get the raw pointer to the structure
-    //unsafe fn get_raw_ptr(&self) -> *mut std::ffi::c_void;
+
 }
 
 enum DDSAllocatedData<T: Sized + DDSGenType> {
