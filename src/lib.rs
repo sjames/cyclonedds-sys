@@ -130,7 +130,7 @@ where
     let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
     let voidpp: *mut *mut c_void = &mut voidp;
 
-    let ret = dds_read(entity, voidpp, &mut info as *mut _, 1, 1);
+    let ret = dds_read_wl(entity, voidpp, &mut info as *mut _,1);
 
     if ret >= 0 {
         if !voidp.is_null() && info.valid_data {
@@ -153,7 +153,7 @@ where
     let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
     let voidpp: *mut *mut c_void = &mut voidp;
 
-    let ret = dds_take(entity, voidpp, &mut info as *mut _, 1, 1);
+    let ret = dds_take_wl(entity, voidpp, &mut info as *mut _,1);
 
     if ret >= 0 {
         if !voidp.is_null() && info.valid_data {
