@@ -39,7 +39,7 @@ mod build {
 
     static ENV_PREFIX: &str = "CYCLONEDDS";
     static LINKLIB: &str = "ddsc";
-    static GIT_COMMIT : &str = "761ffa6db2ee1e4c6d22e495e609179a5ec5b22f";
+    static GIT_COMMIT: &str = "761ffa6db2ee1e4c6d22e495e609179a5ec5b22f";
 
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
@@ -109,10 +109,9 @@ mod build {
     fn find_cyclonedds() -> Option<HeaderLocation> {
         // The library name does not change. Print that out right away
         println!("cargo:rustc-link-lib={}", LINKLIB);
-        
 
         let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
-        
+
         //first priority is environment variable.
         if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
             println!("cargo:rustc-link-search={}", dir);

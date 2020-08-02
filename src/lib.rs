@@ -17,7 +17,6 @@ pub type DdsTopicDescriptor = dds_topic_descriptor_t;
 pub trait DDSGenType {
     /// Get the address of the static descriptor created by the generated code
     unsafe fn get_descriptor() -> &'static dds_topic_descriptor_t;
-
 }
 
 enum DDSAllocatedData<T: Sized + DDSGenType> {
@@ -123,46 +122,46 @@ where
     }
 }
 
-pub unsafe fn read<'a,T>(entity: DdsEntity) -> Result<&'a T, DDSError>
+pub unsafe fn read<'a, T>(entity: DdsEntity) -> Result<&'a T, DDSError>
 where
     T: Sized + DDSGenType,
 {
-        let mut info: dds_sample_info = dds_sample_info::default();
-        let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
-        let voidpp: *mut *mut c_void = &mut voidp;
+    let mut info: dds_sample_info = dds_sample_info::default();
+    let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
+    let voidpp: *mut *mut c_void = &mut voidp;
 
-        let ret = dds_read(entity, voidpp, &mut info as *mut _, 1, 1);
+    let ret = dds_read(entity, voidpp, &mut info as *mut _, 1, 1);
 
-        if ret >= 0 {
-            if !voidp.is_null() && info.valid_data {
-                let ref_t  = voidp as * const T;
-                Ok(&*ref_t)
-            } else {
-                Err(DDSError::OutOfResources)
-            }
+    if ret >= 0 {
+        if !voidp.is_null() && info.valid_data {
+            let ref_t = voidp as *const T;
+            Ok(&*ref_t)
         } else {
-            Err(DDSError::from(ret))
+            Err(DDSError::OutOfResources)
         }
+    } else {
+        Err(DDSError::from(ret))
+    }
 }
 
-pub unsafe fn take<'a,T>(entity: DdsEntity) -> Result<&'a T, DDSError>
+pub unsafe fn take<'a, T>(entity: DdsEntity) -> Result<&'a T, DDSError>
 where
     T: Sized + DDSGenType,
 {
-        let mut info: dds_sample_info = dds_sample_info::default();
-        let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
-        let voidpp: *mut *mut c_void = &mut voidp;
+    let mut info: dds_sample_info = dds_sample_info::default();
+    let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
+    let voidpp: *mut *mut c_void = &mut voidp;
 
-        let ret = dds_take(entity, voidpp, &mut info as *mut _, 1, 1);
+    let ret = dds_take(entity, voidpp, &mut info as *mut _, 1, 1);
 
-        if ret >= 0 {
-            if !voidp.is_null() && info.valid_data {
-                let ref_t  = voidp as * const T;
-                Ok(&*ref_t)
-            } else {
-                Err(DDSError::OutOfResources)
-            }
+    if ret >= 0 {
+        if !voidp.is_null() && info.valid_data {
+            let ref_t = voidp as *const T;
+            Ok(&*ref_t)
         } else {
-            Err(DDSError::from(ret))
+            Err(DDSError::OutOfResources)
         }
+    } else {
+        Err(DDSError::from(ret))
+    }
 }
