@@ -175,17 +175,18 @@ where
     T: Sized + DDSGenType,
 {
     pub unsafe fn new(p: *const *const T, entity: DdsEntity, size: usize) -> Self {
-        Self(p, entity, size)
+        //let ptr_to_ts = *p as *const T;
+        if  !p.is_null() && !(*p as *const T).is_null() {
+            Self(p, entity, size)
+        } else {
+            panic!("Bad pointer when creating DdsLoanedData");
+        }
     }
 
-    pub fn as_slice(&self) -> Option<&[T]> {
+    pub fn as_slice(&self) -> &[T] {
         unsafe {
             let ptr_to_ts = *self.0 as *const T;
-            if !ptr_to_ts.is_null() {
-                Some(std::slice::from_raw_parts(ptr_to_ts, self.2))
-            } else {
-                None
-            }
+            std::slice::from_raw_parts(ptr_to_ts, self.2)
         }
     }
 }
