@@ -122,7 +122,7 @@ where
     }
 }
 
-pub unsafe fn read<'a, T>(entity: DdsEntity) -> Result<&'a T, DDSError>
+pub unsafe fn read<'a, T>(entity: DdsEntity) -> Result<DdsLoanedData<T>, DDSError> 
 where
     T: Sized + DDSGenType,
 {
@@ -134,8 +134,9 @@ where
 
     if ret >= 0 {
         if !voidp.is_null() && info.valid_data {
-            let ref_t = voidp as *const T;
-            Ok(&*ref_t)
+            let ptr_to_ts : *const *const T = voidpp as *const *const T;
+            let data = DdsLoanedData::new(ptr_to_ts,entity,1);
+            Ok(data)
         } else {
             Err(DDSError::OutOfResources)
         }
@@ -144,7 +145,7 @@ where
     }
 }
 
-pub unsafe fn take<'a, T>(entity: DdsEntity) -> Result<&'a T, DDSError>
+pub unsafe fn take<'a, T>(entity: DdsEntity) -> Result<DdsLoanedData<T>, DDSError> 
 where
     T: Sized + DDSGenType,
 {
@@ -156,8 +157,9 @@ where
 
     if ret >= 0 {
         if !voidp.is_null() && info.valid_data {
-            let ref_t = voidp as *const T;
-            Ok(&*ref_t)
+            let ptr_to_ts : *const *const T = voidpp as *const *const T;
+            let data = DdsLoanedData::new(ptr_to_ts,entity,1);
+            Ok(data)
         } else {
             Err(DDSError::OutOfResources)
         }
@@ -166,13 +168,13 @@ where
     }
 }
 
-pub struct DdsLoanedData<T: Sized + DDSGenType>(*mut *mut T, DdsEntity, usize);
+pub struct DdsLoanedData<T: Sized + DDSGenType>(*const *const T, DdsEntity, usize);
 
 impl<T> DdsLoanedData<T>
 where
     T: Sized + DDSGenType,
 {
-    pub unsafe fn new(p: *mut *mut T, entity: DdsEntity, size: usize) -> Self {
+    pub unsafe fn new(p: *const *const T, entity: DdsEntity, size: usize) -> Self {
         Self(p, entity, size)
     }
 
