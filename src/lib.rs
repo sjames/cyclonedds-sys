@@ -123,7 +123,7 @@ where
     }
 }
 
-pub fn read<T>(entity: DdsEntity) -> Result<&'static T, DDSError>
+pub fn read<'a,T>(entity: DdsEntity) -> Result<&'a T, DDSError>
 where
     T: Sized + DDSGenType,
 {
@@ -147,7 +147,7 @@ where
     }
 }
 
-pub fn take<T>(entity: DdsEntity) -> Result<&'static T, DDSError>
+pub fn take<'a,T>(entity: DdsEntity) -> Result<&'a T, DDSError>
 where
     T: Sized + DDSGenType,
 {
