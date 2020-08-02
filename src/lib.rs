@@ -109,7 +109,7 @@ where
     }
 }
 
-pub fn write<T>(entity: dds_entity_t, msg: &T) -> Result<(), DDSError>
+pub fn write<T>(entity: DdsEntity, msg: &T) -> Result<(), DDSError>
 where
     T: Sized + DDSGenType,
 {
@@ -123,7 +123,7 @@ where
     }
 }
 
-pub fn read<T>(entity: dds_entity_t) -> Result<DDSBox<T>, DDSError>
+pub fn read<T>(entity: DdsEntity) -> Result<&'static T, DDSError>
 where
     T: Sized + DDSGenType,
 {
@@ -136,8 +136,32 @@ where
 
         if ret >= 0 {
             if !voidp.is_null() && info.valid_data {
-                let buf = DDSBox::<T>::new_from_cyclone_allocated_struct(voidp as *mut T);
-                Ok(buf)
+                let ref_t  = voidp as * const T;
+                Ok(&*ref_t)
+            } else {
+                Err(DDSError::OutOfResources)
+            }
+        } else {
+            Err(DDSError::from(ret))
+        }
+    }
+}
+
+pub fn take<T>(entity: DdsEntity) -> Result<&'static T, DDSError>
+where
+    T: Sized + DDSGenType,
+{
+    unsafe {
+        let mut info: dds_sample_info = dds_sample_info::default();
+        let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
+        let voidpp: *mut *mut c_void = &mut voidp;
+
+        let ret = dds_take(entity, voidpp, &mut info as *mut _, 1, 1);
+
+        if ret >= 0 {
+            if !voidp.is_null() && info.valid_data {
+                let ref_t  = voidp as * const T;
+                Ok(&*ref_t)
             } else {
                 Err(DDSError::OutOfResources)
             }
