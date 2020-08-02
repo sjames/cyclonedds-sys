@@ -197,10 +197,10 @@ where
 {
     fn drop(&mut self) {
         unsafe {
-            let ret = dds_return_loan(self.1, self.0 as *mut *mut std::ffi::c_void, self.2 as i32);
-            if ret < 0 {
-                panic!("Panic as drop cannot fail: {}", DDSError::from(ret));
-            }
+            //let ret = dds_return_loan(self.1, self.0 as *mut *mut std::ffi::c_void, self.2 as i32);
+            //if ret < 0 {
+            //    panic!("Panic as drop cannot fail: {}", DDSError::from(ret));
+            //}
         }
     }
 }
