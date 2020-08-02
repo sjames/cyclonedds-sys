@@ -165,3 +165,39 @@ where
         Err(DDSError::from(ret))
     }
 }
+
+pub struct DdsLoanedData<T: Sized + DDSGenType>(*mut *mut T, DdsEntity, usize);
+
+impl<T> DdsLoanedData<T>
+where
+    T: Sized + DDSGenType,
+{
+    pub unsafe fn new(p: *mut *mut T, entity: DdsEntity, size: usize) -> Self {
+        Self(p, entity, size)
+    }
+
+    pub fn as_slice(&self) -> Option<&[T]> {
+        unsafe {
+            let ptr_to_ts = *self.0 as *const T;
+            if !ptr_to_ts.is_null() {
+                Some(std::slice::from_raw_parts(ptr_to_ts, self.2))
+            } else {
+                None
+            }
+        }
+    }
+}
+
+impl<T> Drop for DdsLoanedData<T>
+where
+    T: Sized + DDSGenType,
+{
+    fn drop(&mut self) {
+        unsafe {
+            let ret = dds_return_loan(self.1, self.0 as *mut *mut std::ffi::c_void, self.2 as i32);
+            if ret < 0 {
+                panic!("Panic as drop cannot fail: {}", DDSError::from(ret));
+            }
+        }
+    }
+}
