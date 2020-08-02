@@ -123,11 +123,10 @@ where
     }
 }
 
-pub fn read<'a,T>(entity: DdsEntity) -> Result<&'a T, DDSError>
+pub unsafe fn read<'a,T>(entity: DdsEntity) -> Result<&'a T, DDSError>
 where
     T: Sized + DDSGenType,
 {
-    unsafe {
         let mut info: dds_sample_info = dds_sample_info::default();
         let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
         let voidpp: *mut *mut c_void = &mut voidp;
@@ -144,14 +143,12 @@ where
         } else {
             Err(DDSError::from(ret))
         }
-    }
 }
 
-pub fn take<'a,T>(entity: DdsEntity) -> Result<&'a T, DDSError>
+pub unsafe fn take<'a,T>(entity: DdsEntity) -> Result<&'a T, DDSError>
 where
     T: Sized + DDSGenType,
 {
-    unsafe {
         let mut info: dds_sample_info = dds_sample_info::default();
         let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
         let voidpp: *mut *mut c_void = &mut voidp;
@@ -168,5 +165,4 @@ where
         } else {
             Err(DDSError::from(ret))
         }
-    }
 }
