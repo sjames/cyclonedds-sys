@@ -39,7 +39,7 @@ mod build {
 
     static ENV_PREFIX: &str = "CYCLONEDDS";
     static LINKLIB: &str = "ddsc";
-    static GIT_COMMIT: &str = "761ffa6db2ee1e4c6d22e495e609179a5ec5b22f";
+    static GIT_COMMIT: &str = "c261053186c455abc63ca5ac7d56c0808a59c364";
 
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
@@ -69,7 +69,7 @@ mod build {
             run("git", |command| {
                 command
                     .arg("checkout")
-                    .arg(GIT_COMMIT) // release 0.6.0
+                    .arg(GIT_COMMIT) 
                     .current_dir(cyclonedds_src_path.to_str().unwrap())
             });
         }

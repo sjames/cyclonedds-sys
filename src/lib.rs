@@ -135,7 +135,7 @@ where
     if ret >= 0 {
         if !voidp.is_null() && info.valid_data {
             let ptr_to_ts : *const *const T = voidpp as *const *const T;
-            let data = DdsLoanedData::new(ptr_to_ts,entity,1);
+            let data = DdsLoanedData::new(ptr_to_ts,entity,ret as usize);
             Ok(data)
         } else {
             Err(DDSError::OutOfResources)
@@ -149,7 +149,7 @@ pub unsafe fn take<'a, T>(entity: DdsEntity) -> Result<DdsLoanedData<T>, DDSErro
 where
     T: Sized + DDSGenType,
 {
-    let mut info: dds_sample_info = dds_sample_info::default();
+    let mut info = dds_sample_info::default();
     let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
     let voidpp: *mut *mut c_void = &mut voidp;
 
@@ -158,7 +158,7 @@ where
     if ret >= 0 {
         if !voidp.is_null() && info.valid_data {
             let ptr_to_ts : *const *const T = voidpp as *const *const T;
-            let data = DdsLoanedData::new(ptr_to_ts,entity,1);
+            let data = DdsLoanedData::new(ptr_to_ts,entity,ret as usize);
             Ok(data)
         } else {
             Err(DDSError::OutOfResources)
