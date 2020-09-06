@@ -454,6 +454,7 @@ mod build {
         .whitelist_type("dds_stream_typecode")
         .whitelist_type("dds_stream_typecode_primary")
         .whitelist_type("dds_stream_typecode_subtype")
+        .whitelist_type("dds_sequence_t")
         .whitelist_var("DDS_DOMAIN_DEFAULT")
         .rustified_enum("dds_durability_kind")
         .rustified_enum("dds_history_kind")
