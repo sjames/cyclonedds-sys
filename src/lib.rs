@@ -133,7 +133,7 @@ where
     }
 }
 
-pub unsafe fn read<'a, T>(entity: DdsEntity) -> Result<DdsLoanedData<T>, DDSError> 
+pub unsafe fn read<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError> 
 where
     T: Sized + DDSGenType,
 {
@@ -156,7 +156,7 @@ where
     }
 }
 
-pub unsafe fn take<'a, T>(entity: DdsEntity) -> Result<DdsLoanedData<T>, DDSError> 
+pub unsafe fn take<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError> 
 where
     T: Sized + DDSGenType,
 {
@@ -179,16 +179,16 @@ where
     }
 }
 
-pub struct DdsLoanedData<T: Sized + DDSGenType>(*const *const T, DdsEntity, usize);
+pub struct DdsLoanedData<T: Sized + DDSGenType>(*const *const T, dds_entity_t, usize);
 
 impl<T> DdsLoanedData<T>
 where
     T: Sized + DDSGenType,
 {
-    pub unsafe fn new(p: *const *const T, entity: DdsEntity, size: usize) -> Self {
+    pub unsafe fn new(p: *const *const T, entity: &DdsEntity, size: usize) -> Self {
         //let ptr_to_ts = *p as *const T;
         if  !p.is_null() && !(*p as *const T).is_null() {
-            Self(p, entity, size)
+            Self(p, entity.entity(), size)
         } else {
             panic!("Bad pointer when creating DdsLoanedData");
         }
