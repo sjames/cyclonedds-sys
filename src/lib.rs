@@ -10,7 +10,18 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 pub mod dds_error;
 pub use dds_error::DDSError;
 
-pub type DdsEntity = dds_entity_t;
+//pub type DdsEntity = dds_entity_t;
+pub struct DdsEntity(dds_entity_t);
+
+impl DdsEntity {
+    pub unsafe fn new(entity: dds_entity_t) -> Self {
+        DdsEntity(entity)
+    }
+    pub unsafe fn entity(&self) -> dds_entity_t {
+        self.0
+    }
+}
+
 pub type DdsDomainId = dds_domainid_t;
 pub type DdsTopicDescriptor = dds_topic_descriptor_t;
 
@@ -113,7 +124,7 @@ where
     T: Sized + DDSGenType,
 {
     unsafe {
-        let ret = dds_write(entity, msg as *const T as *const std::ffi::c_void);
+        let ret = dds_write(entity.entity(), msg as *const T as *const std::ffi::c_void);
         if ret >= 0 {
             Ok(())
         } else {
@@ -130,7 +141,7 @@ where
     let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
     let voidpp: *mut *mut c_void = &mut voidp;
 
-    let ret = dds_read_wl(entity, voidpp, &mut info as *mut _,1);
+    let ret = dds_read_wl(entity.entity(), voidpp, &mut info as *mut _,1);
 
     if ret >= 0 {
         if !voidp.is_null() && info.valid_data {
@@ -153,7 +164,7 @@ where
     let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
     let voidpp: *mut *mut c_void = &mut voidp;
 
-    let ret = dds_take_wl(entity, voidpp, &mut info as *mut _,1);
+    let ret = dds_take_wl(entity.entity(), voidpp, &mut info as *mut _,1);
 
     if ret >= 0 {
         if !voidp.is_null() && info.valid_data {
@@ -196,11 +207,11 @@ where
     T: Sized + DDSGenType,
 {
     fn drop(&mut self) {
-        unsafe {
+        //unsafe {
             //let ret = dds_return_loan(self.1, self.0 as *mut *mut std::ffi::c_void, self.2 as i32);
             //if ret < 0 {
             //    panic!("Panic as drop cannot fail: {}", DDSError::from(ret));
             //}
-        }
+        //}
     }
 }
