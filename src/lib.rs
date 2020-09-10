@@ -4,6 +4,7 @@
 
 use core::ops::{Deref, DerefMut};
 use std::os::raw::c_void;
+use bitmask::bitmask;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -213,5 +214,21 @@ where
             //    panic!("Panic as drop cannot fail: {}", DDSError::from(ret));
             //}
         //}
+    }
+}
+
+bitmask! {
+    pub mask StateMask : u64 where flags Flags {
+        DdsReadSampleState = 0x1,
+        DdsNotReadSampleState = 0x2,
+        DdsAnySampleState = 0x1 | 0x2,
+        DdsNewViewState = 0x4,
+        DdsNotNewViewState = 0x8,
+        DdsAnyViewState = 0x4 | 0x8,
+        DdsAliveInstanceState = 16,
+        DdsNotAliveDisposedInstanceState = 32,
+        DdsNotAliveNoWritersInstanceState = 64,
+        DdsAnyInstanceState = 16 | 32 | 64,
+        DdsAnyState =  1 | 2  | 4 | 8 | 16 | 32 | 64,
     }
 }
