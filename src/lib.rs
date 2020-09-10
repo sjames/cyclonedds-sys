@@ -218,7 +218,7 @@ where
 }
 
 bitmask! {
-    pub mask StateMask : u64 where flags Flags {
+    pub mask StateMask : u32 where flags Flags {
         DdsReadSampleState = 0x1,
         DdsNotReadSampleState = 0x2,
         DdsAnySampleState = 0x1 | 0x2,
