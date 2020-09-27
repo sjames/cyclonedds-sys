@@ -209,10 +209,15 @@ where
 {
     fn drop(&mut self) {
         unsafe {
-            //let ret = dds_return_loan(self.1, self.0 as *mut *mut std::ffi::c_void, self.2 as i32);
-            //if ret < 0 {
-            //    panic!("Panic as drop cannot fail: {}", DDSError::from(ret));
-            //}
+            let ret = dds_return_loan(self.1, self.0 as *mut *mut std::ffi::c_void, self.2 as i32);
+            if ret < 0 {
+                println!("PossibleIssue:dds_return_loan failed. Attempting dds_sample_free {}", DDSError::from(ret));
+                dds_sample_free(
+                    self.0 as *mut std::ffi::c_void,
+                    T::get_descriptor(),
+                    dds_free_op_t_DDS_FREE_ALL,
+                );
+            }
         }
     }
 }
