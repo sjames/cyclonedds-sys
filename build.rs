@@ -69,7 +69,7 @@ mod build {
             run("git", |command| {
                 command
                     .arg("checkout")
-                    .arg(GIT_COMMIT) 
+                    .arg(GIT_COMMIT)
                     .current_dir(cyclonedds_src_path.to_str().unwrap())
             });
         }

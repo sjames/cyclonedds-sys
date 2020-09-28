@@ -2,9 +2,9 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+use bitmask::bitmask;
 use core::ops::{Deref, DerefMut};
 use std::os::raw::c_void;
-use bitmask::bitmask;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -134,20 +134,20 @@ where
     }
 }
 
-pub unsafe fn read<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError> 
+pub unsafe fn read<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError>
 where
     T: Sized + DDSGenType,
 {
     let mut info: dds_sample_info = dds_sample_info::default();
-    let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
-    let voidpp: *mut *mut c_void = &mut voidp;
+    let mut voidpp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
 
-    let ret = dds_read_wl(entity.entity(), voidpp, &mut info as *mut _,1);
+    let ret = dds_read_wl(entity.entity(), &mut voidpp, &mut info as *mut _, 1);
+    //println!("Pointer returned by dds_read_wl is:{:?} first entry is:{:?}",voidpp,*voidpp);
 
     if ret >= 0 {
-        if !voidp.is_null() && info.valid_data {
-            let ptr_to_ts : *const *const T = voidpp as *const *const T;
-            let data = DdsLoanedData::new(ptr_to_ts,entity,ret as usize);
+        if !voidpp.is_null() && info.valid_data {
+            let ptr_to_ts: *const T = voidpp as *const T;
+            let data = DdsLoanedData::new(ptr_to_ts, entity, ret as usize);
             Ok(data)
         } else {
             Err(DDSError::OutOfResources)
@@ -157,20 +157,18 @@ where
     }
 }
 
-pub unsafe fn take<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError> 
+pub unsafe fn take<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError>
 where
     T: Sized + DDSGenType,
 {
     let mut info = dds_sample_info::default();
-    let mut voidp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
-    let voidpp: *mut *mut c_void = &mut voidp;
-
-    let ret = dds_take_wl(entity.entity(), voidpp, &mut info as *mut _,1);
+    let mut voidpp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
+    let ret = dds_take_wl(entity.entity(), &mut voidpp, &mut info as *mut _, 1);
 
     if ret >= 0 {
-        if !voidp.is_null() && info.valid_data {
-            let ptr_to_ts : *const *const T = voidpp as *const *const T;
-            let data = DdsLoanedData::new(ptr_to_ts,entity,ret as usize);
+        if !voidpp.is_null() && info.valid_data {
+            let ptr_to_ts: *const T = voidpp as *const T;
+            let data = DdsLoanedData::new(ptr_to_ts, entity, ret as usize);
             Ok(data)
         } else {
             Err(DDSError::OutOfResources)
@@ -180,15 +178,15 @@ where
     }
 }
 
-pub struct DdsLoanedData<T: Sized + DDSGenType>(*const *const T, dds_entity_t, usize);
+pub struct DdsLoanedData<T: Sized + DDSGenType>(*const T, dds_entity_t, usize);
 
 impl<T> DdsLoanedData<T>
 where
     T: Sized + DDSGenType,
 {
-    pub unsafe fn new(p: *const *const T, entity: &DdsEntity, size: usize) -> Self {
+    pub unsafe fn new(p: *const T, entity: &DdsEntity, size: usize) -> Self {
         //let ptr_to_ts = *p as *const T;
-        if  !p.is_null() && !(*p as *const T).is_null() {
+        if !p.is_null() {
             Self(p, entity.entity(), size)
         } else {
             panic!("Bad pointer when creating DdsLoanedData");
@@ -197,7 +195,8 @@ where
 
     pub fn as_slice(&self) -> &[T] {
         unsafe {
-            let ptr_to_ts = *self.0 as *const T;
+            let ptr_to_ts = self.0 as *const T;
+            //println!("Ptr_to_ts:{:?}",ptr_to_ts);
             std::slice::from_raw_parts(ptr_to_ts, self.2)
         }
     }
@@ -209,7 +208,14 @@ where
 {
     fn drop(&mut self) {
         unsafe {
-            let ret = dds_return_loan(self.1, self.0 as *mut *mut std::ffi::c_void, self.2 as i32);
+            //println!("Drop:Pointer is:{:?}, size is:{} Entity:{:?}",self.0,self.2, self.1);
+            //println!("Pointer0 is: {:?}",self.0);
+            let mut raw: *mut std::ffi::c_void = self.0 as *mut std::ffi::c_void;
+            let ret = dds_return_loan(
+                self.1,
+                &mut raw as *mut *mut std::ffi::c_void,
+                self.2 as i32,
+            );
             if ret < 0 {
                 panic!("Panic as drop cannot fail: {}", DDSError::from(ret));
             }
