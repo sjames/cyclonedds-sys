@@ -1,5 +1,7 @@
 # cyclonedds-sys
-Rust binding to cyclone-dds  https://github.com/eclipse-cyclonedds/cyclonedds.git .  Still experimental.
+Rust binding to cyclone-dds  https://github.com/eclipse-cyclonedds/cyclonedds.git .
+
+Experimental and only supports Linux.
 
 # Generated bindings
 
