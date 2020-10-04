@@ -150,15 +150,19 @@ where
     }
 }
 
-pub unsafe fn read<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError>
+pub unsafe fn read_n<'a, T>(entity: &DdsEntity, num: usize) -> Result<DdsLoanedData<T>, DDSError>
 where
     T: Sized + DDSGenType,
 {
     let mut info: dds_sample_info = dds_sample_info::default();
     let mut voidpp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
 
-    let ret = dds_read_wl(entity.entity(), &mut voidpp, &mut info as *mut _, 1);
-    //println!("Pointer returned by dds_read_wl is:{:?} first entry is:{:?}",voidpp,*voidpp);
+    let ret = dds_read_wl(
+        entity.entity(),
+        &mut voidpp,
+        &mut info as *mut _,
+        num as u32,
+    );
 
     if ret >= 0 {
         if !voidpp.is_null() && info.valid_data {
@@ -173,13 +177,13 @@ where
     }
 }
 
-pub unsafe fn take<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError>
+pub unsafe fn take_n<'a, T>(entity: &DdsEntity, n: usize) -> Result<DdsLoanedData<T>, DDSError>
 where
     T: Sized + DDSGenType,
 {
     let mut info = dds_sample_info::default();
     let mut voidpp: *mut c_void = std::ptr::null::<T>() as *mut c_void;
-    let ret = dds_take_wl(entity.entity(), &mut voidpp, &mut info as *mut _, 1);
+    let ret = dds_take_wl(entity.entity(), &mut voidpp, &mut info as *mut _, n as u32);
 
     if ret >= 0 {
         if !voidpp.is_null() && info.valid_data {
@@ -192,6 +196,20 @@ where
     } else {
         Err(DDSError::from(ret))
     }
+}
+
+pub unsafe fn read<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError>
+where
+    T: Sized + DDSGenType,
+{
+    read_n(entity, 1)
+}
+
+pub unsafe fn take<'a, T>(entity: &DdsEntity) -> Result<DdsLoanedData<T>, DDSError>
+where
+    T: Sized + DDSGenType,
+{
+    read_n(entity, 1)
 }
 
 pub struct DdsLoanedData<T: Sized + DDSGenType>(*const T, dds_entity_t, usize);
