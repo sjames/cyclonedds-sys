@@ -18,6 +18,7 @@
 */
 
 use std::process::Command;
+use cc;
 
 fn main() {
     build::main();
@@ -471,6 +472,8 @@ mod build {
         .allowlist_function("ddsi_sertype_fini")
         .allowlist_function("ddsi_sertype_v0")
         .allowlist_function("ddsi_serdata_init")
+        .allowlist_function("ddsi_serdata_addref")
+        .allowlist_function("ddsi_serdata_removeref")
         .allowlist_function("_dummy")
         .whitelist_type("dds_stream_opcode")
         .whitelist_type("dds_stream_typecode")
@@ -482,6 +485,7 @@ mod build {
         .whitelist_type("ddsi_serdata_ops")
         .whitelist_type("ddsi_sertype_init")
         .whitelist_type("nn_rdata")
+        .whitelist_type("ddsrt_iovec_t")
         .whitelist_var("DDS_DOMAIN_DEFAULT")
         .rustified_enum("dds_durability_kind")
         .rustified_enum("dds_history_kind")
@@ -495,7 +499,7 @@ mod build {
         .constified_enum("dds_status_id")
     }
 
-    pub fn generate(include_paths: std::vec::Vec<String>, maybe_sysroot: Option<String>) {
+    pub fn generate(include_paths: &std::vec::Vec<String>, maybe_sysroot: Option<&String>) {
         let mut bindings = bindgen::Builder::default().header("wrapper.h");
 
         for path in include_paths {
@@ -525,10 +529,31 @@ mod build {
         }
         let headerloc = find_cyclonedds().unwrap();
 
-        match headerloc {
-            HeaderLocation::FromCMakeEnvironment(paths, sysroot) => generate(paths, Some(sysroot)),
-            HeaderLocation::FromEnvironment(paths) => generate(paths, None),
-            HeaderLocation::FromLocalBuild(paths) => generate(paths, None),
+        match &headerloc {
+            HeaderLocation::FromCMakeEnvironment(paths, sysroot) => generate(&paths, Some(sysroot)),
+            HeaderLocation::FromEnvironment(paths) | HeaderLocation::FromLocalBuild(paths)  => generate(&paths, None),
         }
+
+        match &headerloc {
+            HeaderLocation::FromCMakeEnvironment(paths, sysroot) => compile_inlines(&paths, Some(sysroot)),
+            HeaderLocation::FromEnvironment(paths) | HeaderLocation::FromLocalBuild(paths)  => compile_inlines(&paths, None),
+        }
+    }
+
+    fn compile_inlines(include_paths: &Vec<String>, maybe_sysroot: Option<&String>) {
+        let mut cc = cc::Build::new();
+
+        cc.file("inline_functions.c");
+
+        for dir in include_paths {
+            cc.include(dir);
+        }
+        cc.compile("libinline_functions.a");
+
+        //if let Some(sysroot) = maybe_sysroot {
+        //    cc.s
+        //}
+
+
     }
 }

@@ -8,3 +8,6 @@
  */
 
 void _dummy(dds_status_id_t status); 
+// cyclone inline functions needed by bindings reimplemented here
+struct ddsi_serdata *ddsi_serdata_addref (const struct ddsi_serdata *serdata_const);
+void ddsi_serdata_removeref (struct ddsi_serdata *serdata);
