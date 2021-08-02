@@ -52,6 +52,7 @@ pub trait DDSGenType {
     /// Get the address of the static descriptor created by the generated code
     unsafe fn get_descriptor() -> &'static dds_topic_descriptor_t;
 }
+ 
 
 enum DDSAllocatedData<T: Sized + DDSGenType> {
     /// The type is allocated by Rust.
