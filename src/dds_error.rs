@@ -18,7 +18,7 @@ use std::{error::Error, fmt};
 
 use crate::dds_return_t;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum DDSError {
     DdsOk,
     DdsError,
