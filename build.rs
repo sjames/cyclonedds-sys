@@ -499,6 +499,10 @@ mod build {
         .rustified_enum("dds_destination_order_kind")
         .rustified_enum("dds_presentation_access_scope_kind")
         .rustified_enum("dds_ignorelocal_kind")
+        .allowlist_var("BUILTIN_TOPIC_DCPSPARTICIPANT")
+        .allowlist_var("BUILTIN_TOPIC_DCPSTOPIC")
+        .allowlist_var("BUILTIN_TOPIC_DCPSPUBLICATION")
+        .allowlist_var("BUILTIN_TOPIC_DCPSSUBSCRIPTION")
  	.derive_default(true)
         .constified_enum("dds_status_id")
     }

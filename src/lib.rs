@@ -45,6 +45,14 @@ impl DdsEntity {
     }
 }
 
+pub mod builtin_entity {
+    use crate::DdsEntity;
+    pub const BUILTIN_TOPIC_DCPSPARTICIPANT_ENTITY : DdsEntity = DdsEntity(crate::BUILTIN_TOPIC_DCPSPARTICIPANT);
+    pub const BUILTIN_TOPIC_DCPSTOPIC_ENTITY : DdsEntity = DdsEntity(crate::BUILTIN_TOPIC_DCPSTOPIC);
+    pub const BUILTIN_TOPIC_DCPSPUBLICATION_ENTITY : DdsEntity = DdsEntity(crate::BUILTIN_TOPIC_DCPSPUBLICATION);
+    pub const BUILTIN_TOPIC_DCPSSUBSCRIPTION : DdsEntity = DdsEntity(crate::BUILTIN_TOPIC_DCPSSUBSCRIPTION);
+}
+
 pub type DdsDomainId = dds_domainid_t;
 pub type DdsTopicDescriptor = dds_topic_descriptor_t;
 
