@@ -61,8 +61,10 @@ mod build {
 
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
+        FromYoctoSDKBuild(std::vec::Vec<String>, String),
         FromEnvironment(std::vec::Vec<String>),
         FromLocalBuild(std::vec::Vec<String>),
+
     }
 
     /// download cyclone dds from github
@@ -134,11 +136,12 @@ mod build {
         if let Ok(sysroot) = env::var("OECORE_TARGET_SYSROOT") {
             let header  = PathBuf::from(&sysroot).join("usr/include/dds/dds.h");
             if header.exists() {
-                let paths = vec![sysroot];
-                return Some(HeaderLocation::FromEnvironment(paths));
+                let paths = vec![sysroot.clone()];
+                println!("Found OECORE_TARGET_SYSROOT");
+                return Some(HeaderLocation::FromYoctoSDKBuild(paths,sysroot));
             }
         }
-
+        
         //first priority is environment variable.
         if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
             println!("cargo:rustc-link-search={}", dir);
@@ -549,11 +552,13 @@ mod build {
         match &headerloc {
             HeaderLocation::FromCMakeEnvironment(paths, sysroot) => generate(&paths, Some(sysroot)),
             HeaderLocation::FromEnvironment(paths) | HeaderLocation::FromLocalBuild(paths)  => generate(&paths, None),
+            HeaderLocation::FromYoctoSDKBuild(paths, sysroot) => generate(&paths, Some(sysroot)),
         }
 
         match &headerloc {
             HeaderLocation::FromCMakeEnvironment(paths, sysroot) => compile_inlines(&paths, Some(sysroot)),
             HeaderLocation::FromEnvironment(paths) | HeaderLocation::FromLocalBuild(paths)  => compile_inlines(&paths, None),
+            HeaderLocation::FromYoctoSDKBuild(paths, sysroot) => compile_inlines(&paths, Some(sysroot)),
         }
     }
 
