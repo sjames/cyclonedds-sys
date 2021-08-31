@@ -130,6 +130,15 @@ mod build {
 
         let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
 
+        // Check if we are building with an OE SDK and the OECORE_TARGET_SYSROOT is set
+        if let Ok(sysroot) = env::var("OECORE_TARGET_SYSROOT") {
+            let header  = PathBuf::from(&sysroot).join("usr/include/dds/dds.h");
+            if header.exists() {
+                let paths = vec![sysroot];
+                return Some(HeaderLocation::FromEnvironment(paths));
+            }
+        }
+
         //first priority is environment variable.
         if let Ok(dir) = env::var(format!("{}_LIB_DIR", ENV_PREFIX)) {
             println!("cargo:rustc-link-search={}", dir);
