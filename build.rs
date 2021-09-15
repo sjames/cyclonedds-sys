@@ -57,7 +57,7 @@ mod build {
 
     static ENV_PREFIX: &str = "CYCLONEDDS";
     static LINKLIB: &str = "ddsc";
-    static GIT_COMMIT: &str = "c261053186c455abc63ca5ac7d56c0808a59c364";
+    static GIT_COMMIT: &str = "7465083759ef8ee2e119b3ee5ab6fd76ad8dc902";
 
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
@@ -562,7 +562,7 @@ mod build {
         }
     }
 
-    fn compile_inlines(include_paths: &Vec<String>, maybe_sysroot: Option<&String>) {
+    fn compile_inlines(include_paths: &Vec<String>, _maybe_sysroot: Option<&String>) {
         let mut cc = cc::Build::new();
 
         cc.file("inline_functions.c");
