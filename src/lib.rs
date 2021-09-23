@@ -19,8 +19,6 @@
 #![allow(non_snake_case)]
 
 use bitmask::bitmask;
-use core::ops::{Deref, DerefMut};
-use std::os::raw::c_void;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
