@@ -146,9 +146,7 @@ mod build {
     }
 
     fn find_iceoryx() -> Option<HeaderLocation> {
-        let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
-
-        // Check if we are building with an OE SDK and the OECORE_TARGET_SYSROOT is set
+          // Check if we are building with an OE SDK and the OECORE_TARGET_SYSROOT is set
         if let Ok(sysroot) = env::var("OECORE_TARGET_SYSROOT") {
             let header  = PathBuf::from(&sysroot).join("usr/include/iceoryx/v2.0.0/iceoryx_binding_c/api.h");
             if header.exists() {
