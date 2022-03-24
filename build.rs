@@ -64,7 +64,26 @@ mod build {
         FromYoctoSDKBuild(std::vec::Vec<String>, String),
         FromEnvironment(std::vec::Vec<String>),
         FromLocalBuild(std::vec::Vec<String>),
+    }
 
+    impl HeaderLocation {
+        fn add_paths(&mut self, mut path: Vec<String>) {
+            match self {
+                HeaderLocation::FromCMakeEnvironment(paths, _) => paths.append(&mut path),
+                HeaderLocation::FromYoctoSDKBuild(paths, _) => paths.append(&mut path),
+                HeaderLocation::FromEnvironment(paths) => paths.append(&mut path),
+                HeaderLocation::FromLocalBuild(paths) => paths.append(&mut path),
+            }
+        }
+
+        fn get_paths(&self) -> Vec<String> {
+            match self {
+                HeaderLocation::FromCMakeEnvironment(paths, _) | 
+                HeaderLocation::FromYoctoSDKBuild(paths, _) | 
+                HeaderLocation::FromEnvironment(paths) | 
+                HeaderLocation::FromLocalBuild(paths) => paths.clone()
+            }
+        }
     }
 
     /// download cyclone dds from github
@@ -124,6 +143,33 @@ mod build {
                 .arg("install")
                 .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
         });
+    }
+
+    fn find_iceoryx() -> Option<HeaderLocation> {
+        let outdir = env::var("OUT_DIR").expect("OUT_DIR is not set");
+
+        // Check if we are building with an OE SDK and the OECORE_TARGET_SYSROOT is set
+        if let Ok(sysroot) = env::var("OECORE_TARGET_SYSROOT") {
+            let header  = PathBuf::from(&sysroot).join("usr/include/iceoryx/v2.0.0/iceoryx_binding_c/api.h");
+            if header.exists() {
+                let iceoryx_include_path = header.parent().unwrap().parent().unwrap().to_str().unwrap();
+                let paths = vec![iceoryx_include_path.into()];
+                println!("Found Iceoryx headers in OECORE_TARGET_SYSROOT");
+                
+                return Some(HeaderLocation::FromYoctoSDKBuild(paths,sysroot));
+            }
+        }
+
+        // now look in local paths - nothing fancy here for now, just using the paths where iceoryx gets installed on my Ubuntu machine.
+        let header = PathBuf::from("/usr/local/include/iceoryx/v2.0.0/iceoryx_binding_c/api.h");
+        if header.exists() {
+            println!("Found Iceoryx headers in local install");
+            let iceoryx_include_path = header.parent().unwrap().parent().unwrap().to_str().unwrap();
+            return Some(HeaderLocation::FromLocalBuild(vec![iceoryx_include_path.into()]));
+        }
+        
+        println!("Iceoryx headers not found");
+        None
     }
 
     fn find_cyclonedds() -> Option<HeaderLocation> {
@@ -489,6 +535,14 @@ mod build {
         .whitelist_function("ddsrt_md5_init")
         .whitelist_function("ddsrt_md5_append")
         .whitelist_function("ddsrt_md5_finish")
+        .whitelist_function("iceoryx_header_from_chunk")
+        .whitelist_function("shm_lock_iox_sub")
+        .whitelist_function("shm_unlock_iox_sub")
+        .whitelist_function("free_iox_chunk")
+        .whitelist_function("shm_set_loglevel")
+        .whitelist_function("shm_create_chunk")
+        .whitelist_function("shm_set_data_state")
+        .whitelist_function("shm_get_data_state")
         .whitelist_function("_dummy")
         .whitelist_type("dds_stream_opcode")
         .whitelist_type("dds_stream_typecode")
@@ -547,7 +601,11 @@ mod build {
         for (key, value) in env::vars() {
             println!("{}: {}", key, value);
         }
-        let headerloc = find_cyclonedds().unwrap();
+        let mut headerloc = find_cyclonedds().unwrap();
+
+        if let Some(iceoryx_headers) = find_iceoryx() {
+            headerloc.add_paths(iceoryx_headers.get_paths());
+        }
 
         match &headerloc {
             HeaderLocation::FromCMakeEnvironment(paths, sysroot) => generate(&paths, Some(sysroot)),
