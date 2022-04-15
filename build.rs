@@ -145,28 +145,30 @@ mod build {
         });
     }
 
-    fn find_iceoryx() -> Option<HeaderLocation> {
+    fn find_iceoryx(iceoryx_version:&str) -> Option<HeaderLocation> {
           // Check if we are building with an OE SDK and the OECORE_TARGET_SYSROOT is set
+        let iceoryx_header_path = format!("usr/include/iceoryx/{}/iceoryx_binding_c/api.h",iceoryx_version);
         if let Ok(sysroot) = env::var("OECORE_TARGET_SYSROOT") {
-            let header  = PathBuf::from(&sysroot).join("usr/include/iceoryx/v2.0.0/iceoryx_binding_c/api.h");
+            let header  = PathBuf::from(&sysroot).join(&iceoryx_header_path);
             if header.exists() {
                 let iceoryx_include_path = header.parent().unwrap().parent().unwrap().to_str().unwrap();
                 let paths = vec![iceoryx_include_path.into()];
-                println!("Found Iceoryx headers in OECORE_TARGET_SYSROOT");
+                //println!("cargo:warning=Found Iceoryx headers in OECORE_TARGET_SYSROOT");
                 
                 return Some(HeaderLocation::FromYoctoSDKBuild(paths,sysroot));
             }
         }
 
         // now look in local paths - nothing fancy here for now, just using the paths where iceoryx gets installed on my Ubuntu machine.
-        let header = PathBuf::from("/usr/local/include/iceoryx/v2.0.0/iceoryx_binding_c/api.h");
+        let iceoryx_header_path = format!("/usr/local/include/iceoryx/{}/iceoryx_binding_c/api.h",iceoryx_version);
+        let header = PathBuf::from(&iceoryx_header_path);
         if header.exists() {
-            println!("Found Iceoryx headers in local install");
+            //println!("cargo:warning=Found Iceoryx headers in {}",iceoryx_header_path);
             let iceoryx_include_path = header.parent().unwrap().parent().unwrap().to_str().unwrap();
             return Some(HeaderLocation::FromLocalBuild(vec![iceoryx_include_path.into()]));
         }
         
-        println!("Iceoryx headers not found");
+        println!("cargo:warning=Iceoryx headers not found");
         None
     }
 
@@ -605,7 +607,9 @@ mod build {
         }
         let mut headerloc = find_cyclonedds().unwrap();
 
-        if let Some(iceoryx_headers) = find_iceoryx() {
+        if let Some(iceoryx_headers) = find_iceoryx("v2.0.2") {
+            headerloc.add_paths(iceoryx_headers.get_paths());
+        } else if let Some(iceoryx_headers) = find_iceoryx("v2.0.0") {
             headerloc.add_paths(iceoryx_headers.get_paths());
         }
 
