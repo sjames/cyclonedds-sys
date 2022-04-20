@@ -546,6 +546,7 @@ mod build {
         .whitelist_function("dds_is_loan_available")
         .whitelist_function("dds_is_shared_memory_available")
         .whitelist_function("dds_loan_shared_memory_buffer")
+        .whitelist_function("dds_return_writer_loan")
         .whitelist_function("dds_loan_sample")
         .whitelist_function("_dummy")
         .whitelist_type("dds_stream_opcode")

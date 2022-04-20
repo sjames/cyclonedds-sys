@@ -31,7 +31,7 @@ pub const DDS_FREE_CONTENTS_BIT:u32 =  0x02;
 pub const DDS_FREE_ALL_BIT:u32 =  0x04;
 
 
-#[derive(Clone)]
+#[derive(Clone,PartialEq)]
 pub struct DdsEntity(dds_entity_t);
 
 impl DdsEntity {

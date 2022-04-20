@@ -1,6 +1,6 @@
 [package]
 name = "cyclonedds-sys"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Sojan James <Sojan.James@gmail.com>"]
 edition = "2018"
 links = "ddsc"
