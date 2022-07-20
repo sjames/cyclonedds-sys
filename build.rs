@@ -18,9 +18,16 @@
 */
 
 use std::process::Command;
+use std::env;
 use cc;
 
 fn main() {
+    // Don't try to re-generate in docs.rs' build runner.
+    if let Ok(val) = env::var("DOCS_RS") {
+        if val == "1" {
+            return;
+        }
+    }
     build::main();
 }
 
@@ -48,7 +55,7 @@ mod build {
 
     extern crate bindgen;
 
-    use std::env;
+    use std::fs;
     use std::path::Path;
     use std::path::PathBuf;
     //use walkdir::{DirEntry, WalkDir};
@@ -595,8 +602,10 @@ mod build {
 
         if let Ok(path) = env::var("OUT_DIR") {
             let out_path = PathBuf::from(path);
-            gen.write_to_file(out_path.join("bindings.rs"))
+            let bindings_path = out_path.join("generated.rs");
+            gen.write_to_file(bindings_path.clone())
                 .expect("Couldn't write bindings");
+            fs::copy(PathBuf::from(bindings_path), PathBuf::from("src/generated.rs")).unwrap();
         } else {
             println!("OUT_DIR not set, not generating bindings");
         }
