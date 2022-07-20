@@ -128,6 +128,8 @@ mod build {
 
         run("cmake", |command| {
             command
+                .env("CFLAGS", "-w")
+                .arg("-DWERROR=OFF")
                 .arg("-DBUILD_IDLC=OFF")
                 .arg(format!("-DCMAKE_INSTALL_PREFIX={}/install", outdir))
                 .arg("..")
