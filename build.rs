@@ -135,7 +135,9 @@ mod build {
         });
 
         run("make", |command| {
-            command.current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
+            command
+                .env("MAKEFLAGS", env::var("CARGO_MAKEFLAGS").unwrap())
+                .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
         });
 
         run("make", |command| {
