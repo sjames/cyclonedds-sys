@@ -131,6 +131,11 @@ mod build {
                 .env("CFLAGS", "-w")
                 .arg("-DWERROR=OFF")
                 .arg("-DBUILD_IDLC=OFF")
+                .arg("-DBUILD_TESTING=OFF")
+                // TODO: Gate on CARGO_FEATURE_SHM
+                .arg("-DENABLE_SHM=YES")
+                .arg("-DENABLE_TYPE_DISCOVERY=YES")
+                .arg("-DENABLE_TOPIC_DISCOVERY=YES")
                 .arg(format!("-DCMAKE_INSTALL_PREFIX={}/install", outdir))
                 .arg("..")
                 .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
