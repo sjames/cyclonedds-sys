@@ -57,7 +57,7 @@ mod build {
 
     static ENV_PREFIX: &str = "CYCLONEDDS";
     static LINKLIB: &str = "ddsc";
-    static GIT_COMMIT: &str = "7465083759ef8ee2e119b3ee5ab6fd76ad8dc902";
+    static GIT_COMMIT: &str = "65981fb935e028c3fbb3b0fbafcbebf3013aa59a";
 
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
