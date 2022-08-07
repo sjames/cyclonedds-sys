@@ -64,7 +64,7 @@ mod build {
 
     static ENV_PREFIX: &str = "CYCLONEDDS";
     static LINKLIB: &str = "ddsc";
-    static GIT_COMMIT: &str = "7465083759ef8ee2e119b3ee5ab6fd76ad8dc902";
+    static GIT_COMMIT: &str = "65981fb935e028c3fbb3b0fbafcbebf3013aa59a";
 
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
@@ -135,14 +135,23 @@ mod build {
 
         run("cmake", |command| {
             command
+                .env("CFLAGS", "-w")
+                .arg("-DWERROR=OFF")
                 .arg("-DBUILD_IDLC=OFF")
+                .arg("-DBUILD_TESTING=OFF")
+                // TODO: Gate on CARGO_FEATURE_SHM
+                .arg("-DENABLE_SHM=YES")
+                .arg("-DENABLE_TYPE_DISCOVERY=YES")
+                .arg("-DENABLE_TOPIC_DISCOVERY=YES")
                 .arg(format!("-DCMAKE_INSTALL_PREFIX={}/install", outdir))
                 .arg("..")
                 .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
         });
 
         run("make", |command| {
-            command.current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
+            command
+                .env("MAKEFLAGS", env::var("CARGO_MAKEFLAGS").unwrap())
+                .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
         });
 
         run("make", |command| {
