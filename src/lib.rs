@@ -20,7 +20,7 @@
 
 use bitmask::bitmask;
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+include!("generated.rs");
 
 pub mod dds_error;
 pub use dds_error::DDSError;
