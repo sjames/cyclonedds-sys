@@ -138,6 +138,7 @@ mod build {
                 .env("CFLAGS", "-w")
                 .arg("-DWERROR=OFF")
                 .arg("-DBUILD_IDLC=OFF")
+                .arg("-DBUILD_DDSPERF=OFF")
                 .arg("-DBUILD_TESTING=OFF")
                 // TODO: Gate on CARGO_FEATURE_SHM
                 .arg("-DENABLE_SHM=YES")
