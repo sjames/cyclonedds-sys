@@ -64,7 +64,7 @@ mod build {
 
     static ENV_PREFIX: &str = "CYCLONEDDS";
     static LINKLIB: &str = "ddsc";
-    static GIT_COMMIT: &str = "65981fb935e028c3fbb3b0fbafcbebf3013aa59a";
+    static GIT_COMMIT: &str = "9995905bce6c4cf9f740d6438bbf7fcfd1c83dfd";
 
     pub enum HeaderLocation {
         FromCMakeEnvironment(std::vec::Vec<String>, String),
@@ -139,13 +139,20 @@ mod build {
                 .arg("-DWERROR=OFF")
                 .arg("-DBUILD_IDLC=OFF")
                 .arg("-DBUILD_TESTING=OFF")
-                // TODO: Gate on CARGO_FEATURE_SHM
-                .arg("-DENABLE_SHM=YES")
+                .arg("-DBUILD_DDSPERF=OFF")
                 .arg("-DENABLE_TYPE_DISCOVERY=YES")
                 .arg("-DENABLE_TOPIC_DISCOVERY=YES")
                 .arg(format!("-DCMAKE_INSTALL_PREFIX={}/install", outdir))
                 .arg("..")
-                .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
+                .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()));
+
+                #[cfg(feature="shm")]
+                command.arg("-DENABLE_SHM=YES");
+
+                #[cfg(not(feature="shm"))]
+                command.arg("-DENABLE_SHM=NO");
+
+                command
         });
 
         run("make", |command| {
