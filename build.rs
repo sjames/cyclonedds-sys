@@ -166,6 +166,10 @@ mod build {
                 .arg("install")
                 .current_dir(format!("{}/build", cyclonedds_src_path.to_str().unwrap()))
         });
+
+        println!("cargo:rustc-link-search=native={}", outdir);
+        println!("cargo:rustc-link-lib=dylib=ddsc.so.0");
+        //cargo:rustc-link-lib=LIB
     }
 
     fn find_iceoryx(iceoryx_version:&str) -> Option<HeaderLocation> {
