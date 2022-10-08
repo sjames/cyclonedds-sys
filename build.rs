@@ -169,7 +169,7 @@ mod build {
         });
 
         println!("cargo:rustc-link-search=native={}", outdir);
-        println!("cargo:rustc-link-lib=dylib=ddsc.so.0");
+        println!("cargo:rustc-link-lib=dylib=ddsc");
         //cargo:rustc-link-lib=LIB
     }
 
