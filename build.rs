@@ -110,15 +110,14 @@ mod build {
                     .arg("https://github.com/eclipse-cyclonedds/cyclonedds.git")
                     .current_dir(env::var("OUT_DIR").expect("OUT_DIR is not set").as_str())
             });
-        } else {
-            log!("Already cloned cyclonedds - just running git checkout");
-            run("git", |command| {
-                command
-                    .arg("checkout")
-                    .arg(GIT_COMMIT)
-                    .current_dir(cyclonedds_src_path.to_str().unwrap())
-            });
         }
+        log!("running git checkout to get the right version of cyclonedds");
+        run("git", |command| {
+            command
+                .arg("checkout")
+                .arg(GIT_COMMIT)
+                .current_dir(cyclonedds_src_path.to_str().unwrap())
+        });
     }
 
     fn configure_and_build() {
