@@ -1,7 +1,7 @@
 #include "dds/dds.h"
 #include "dds/ddsi/ddsi_serdata.h"
 #include "dds/ddsi/ddsi_sertype.h"
-#include "dds/ddsi/q_radmin.h"
+#include "dds/ddsi/ddsi_radmin.h"
 #include "dds/ddsrt/md5.h"
 #include "dds/ddsi/ddsi_shm_transport.h"
 #include "dds/ddsc/dds_loan_api.h"
