@@ -12,7 +12,7 @@ provides a safe Rust api over this the sys crate.
 
 # System Dependencies
 
-* iceoryx https://github.com/eclipse-iceoryx/iceoryx version 2.0.2.  Do not install any other version.
+* iceoryx https://github.com/eclipse-iceoryx/iceoryx version 2.0.2. (https://github.com/eclipse-iceoryx/iceoryx/commit/f756b7c99ddf714d05929374492b34c5c69355bb) Do not install any other version.
 * git
 * libclang
 * cmake
